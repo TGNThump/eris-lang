@@ -24,10 +24,6 @@ public class Parser{
 		diagnostics.addAll(lexer.getDiagnostics());
 	}
 
-	public List<String> getDiagnostics(){
-		return diagnostics;
-	}
-
 	private SyntaxToken peek(int offset){
 		var index = position + offset;
 		if (index >= tokens.size())
@@ -65,8 +61,17 @@ public class Parser{
 		return parseExpression(0);
 	}
 
+	@SuppressWarnings("InfiniteRecursion")
 	private ExpressionSyntax parseExpression(int parentPrecedence){
-		var left = parsePrimaryExpression();
+		ExpressionSyntax left;
+		var unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(current().kind());
+		if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= parentPrecedence){
+			var operatorToken = nextToken();
+			var operand = parseExpression(unaryOperatorPrecedence);
+			left = new UnaryExpressionSyntax(operatorToken, operand);
+		} else {
+			left = parsePrimaryExpression();
+		}
 
 		while (true){
 			var precedence = SyntaxFacts.getBinaryOperatorPrecedence(current().kind());
