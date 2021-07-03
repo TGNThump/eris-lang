@@ -1,4 +1,4 @@
-package lang.eris.analysis;
+package lang.eris.analysis.syntax;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,12 +6,12 @@ import java.util.List;
 public record BinaryExpressionSyntax(
 	ExpressionSyntax left,
 	SyntaxToken operator,
-	ExpressionSyntax right
-) implements ExpressionSyntax {
+	lang.eris.analysis.syntax.ExpressionSyntax right
+) implements lang.eris.analysis.syntax.ExpressionSyntax{
 
 	@Override
 	public SyntaxKind kind(){
-		return SyntaxKind.BinaryExpression;
+		return lang.eris.analysis.syntax.SyntaxKind.BinaryExpression;
 	}
 
 	@Override

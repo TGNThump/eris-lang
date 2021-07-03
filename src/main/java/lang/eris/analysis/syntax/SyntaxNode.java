@@ -1,11 +1,11 @@
-package lang.eris.analysis;
+package lang.eris.analysis.syntax;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 public interface SyntaxNode extends Iterable<SyntaxNode>{
-	SyntaxKind kind();
+	lang.eris.analysis.syntax.SyntaxKind kind();
 	default List<SyntaxNode> children(){
 		return Collections.emptyList();
 	}

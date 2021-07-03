@@ -1,6 +1,9 @@
 package lang.eris;
 
-import lang.eris.analysis.*;
+import lang.eris.analysis.Evaluator;
+import lang.eris.analysis.syntax.SyntaxNode;
+import lang.eris.analysis.syntax.SyntaxToken;
+import lang.eris.analysis.syntax.SyntaxTree;
 
 import java.io.BufferedReader;
 import java.io.IOException;

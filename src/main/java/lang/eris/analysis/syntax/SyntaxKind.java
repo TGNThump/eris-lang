@@ -1,4 +1,4 @@
-package lang.eris.analysis;
+package lang.eris.analysis.syntax;
 
 public enum SyntaxKind{
 	// Tokens

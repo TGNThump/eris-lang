@@ -1,6 +1,8 @@
-package lang.eris.analysis;
+package lang.eris.analysis.syntax;
 
-public class SyntaxFacts{
+public final class SyntaxFacts{
+	private SyntaxFacts(){}
+
 	public static int getUnaryOperatorPrecedence(SyntaxKind kind){
 		return switch (kind){
 			case PlusToken, MinusToken -> 3;
@@ -8,7 +10,7 @@ public class SyntaxFacts{
 		};
 	}
 
-	public static int getBinaryOperatorPrecedence(SyntaxKind kind){
+	public static int getBinaryOperatorPrecedence(lang.eris.analysis.syntax.SyntaxKind kind){
 		return switch (kind){
 			case StarToken, SlashToken -> 2;
 			case PlusToken, MinusToken -> 1;
