@@ -17,36 +17,21 @@ public class LexerTests{
 
 	@SuppressWarnings("unused")
 	private static Stream<SyntaxExample> tokens(){
-		return Stream.of(
-				new SyntaxExample(SyntaxKind.PlusToken, "+"),
-				new SyntaxExample(SyntaxKind.MinusToken, "-"),
-				new SyntaxExample(SyntaxKind.StarToken, "*"),
-				new SyntaxExample(SyntaxKind.SlashToken, "/"),
-				new SyntaxExample(SyntaxKind.BangToken, "!"),
-				new SyntaxExample(SyntaxKind.BangEqualsToken, "!="),
-				new SyntaxExample(SyntaxKind.AmpersandAmpersandToken, "&&"),
-				new SyntaxExample(SyntaxKind.AmpersandToken, "&"),
-				new SyntaxExample(SyntaxKind.PipePipeToken, "||"),
-				new SyntaxExample(SyntaxKind.PipeToken, "|"),
-				new SyntaxExample(SyntaxKind.EqualsEqualsToken, "=="),
-				new SyntaxExample(SyntaxKind.EqualsToken, "="),
-				new SyntaxExample(SyntaxKind.LessThanEqualsToken, "<="),
-				new SyntaxExample(SyntaxKind.LessThanToken, "<"),
-				new SyntaxExample(SyntaxKind.GreaterThanEqualsToken, ">="),
-				new SyntaxExample(SyntaxKind.GreaterThanToken, ">"),
-				new SyntaxExample(SyntaxKind.OpenParenthesisToken, "("),
-				new SyntaxExample(SyntaxKind.CloseParenthesisToken, ")"),
-				new SyntaxExample(SyntaxKind.FalseKeyword, "false"),
-				new SyntaxExample(SyntaxKind.TrueKeyword, "true"),
-				new SyntaxExample(SyntaxKind.NumberToken, "1"),
-				new SyntaxExample(SyntaxKind.NumberToken, "123"),
-				new SyntaxExample(SyntaxKind.IdentifierToken, "a"),
-				new SyntaxExample(SyntaxKind.IdentifierToken, "abc")
+		return Stream.concat(
+//				Static tokens
+				Arrays.stream(SyntaxKind.values()).map(k -> new SyntaxExample(k, SyntaxFacts.getText(k))).filter(ex -> ex.text != null),
+//				Dynamic tokens
+				Stream.of(
+						new SyntaxExample(SyntaxKind.NumberToken, "1"),
+						new SyntaxExample(SyntaxKind.NumberToken, "123"),
+						new SyntaxExample(SyntaxKind.IdentifierToken, "a"),
+						new SyntaxExample(SyntaxKind.IdentifierToken, "abc")
+				)
 		);
 	}
 
 	@SuppressWarnings("unused")
-	private static Stream<SyntaxExample> seperators(){
+	private static Stream<SyntaxExample> separators(){
 		return Stream.of(
 				new SyntaxExample(SyntaxKind.WhitespaceToken, " "),
 				new SyntaxExample(SyntaxKind.WhitespaceToken, "  "),
@@ -88,7 +73,7 @@ public class LexerTests{
 		return tokens()
 				.flatMap(a -> tokens().flatMap(b -> {
 					if (requiresSeparator(a.kind, b.kind)){
-						return seperators().map(sep -> Arrays.asList(a, sep, b));
+						return separators().map(sep -> Arrays.asList(a, sep, b));
 					} else {
 						return Stream.of(Arrays.asList(a, b));
 					}
@@ -96,7 +81,7 @@ public class LexerTests{
 	}
 
 	@ParameterizedTest
-	@MethodSource({"tokens", "seperators"})
+	@MethodSource({"tokens", "separators"})
 	public void lexerLexesToken(SyntaxExample syntaxExample){
 		var tokens = SyntaxTree.parseTokens(syntaxExample.text);
 
