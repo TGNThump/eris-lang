@@ -1,39 +1,35 @@
 package lang.eris.analysis;
 
-import lang.eris.analysis.syntax.ExpressionSyntax;
-import lang.eris.analysis.syntax.LiteralExpressionSyntax;
-import lang.eris.analysis.syntax.ParenthesizedExpressionSyntax;
-import lang.eris.analysis.syntax.UnaryExpressionSyntax;
+import lang.eris.analysis.binding.BoundBinaryExpression;
+import lang.eris.analysis.binding.BoundExpression;
+import lang.eris.analysis.binding.BoundLiteralExpression;
+import lang.eris.analysis.binding.BoundUnaryExpression;
 
-public record Evaluator(ExpressionSyntax root){
+public record Evaluator(BoundExpression root){
 
 	public Object evaluate(){
 		return evaluateExpression(root);
 	}
 
-	private Object evaluateExpression(lang.eris.analysis.syntax.ExpressionSyntax node){
-		if (node instanceof LiteralExpressionSyntax l){
-			return l.literalToken().value();
-		} else if (node instanceof UnaryExpressionSyntax u){
+	private Object evaluateExpression(BoundExpression node){
+		if (node instanceof BoundLiteralExpression l){
+			return l.value();
+		} else if (node instanceof BoundUnaryExpression u){
 			var operand = evaluateExpression(u.operand());
-			return switch (u.operator().kind()){
-				case MinusToken -> -(int) operand;
-				case PlusToken -> operand;
-				default -> throw new IllegalStateException("Unexpected unary operator " + u.operator().kind());
+			return switch (u.operatorKind()){
+				case NEGATION -> -(int) operand;
+				case IDENTITY -> operand;
 			};
-		} else if (node instanceof lang.eris.analysis.syntax.BinaryExpressionSyntax b){
+		} else if (node instanceof BoundBinaryExpression b){
 			var left = evaluateExpression(b.left());
 			var right = evaluateExpression(b.right());
 
-			return switch (b.operator().kind()){
-				case PlusToken -> (int) left + (int) right;
-				case MinusToken -> (int) left - (int) right;
-				case StarToken -> (int) left * (int) right;
-				case SlashToken -> (int) left / (int) right;
-				default -> throw new IllegalStateException("Unexpected binary operator " + b.operator().kind());
+			return switch (b.operatorKind()){
+				case Addition -> (int) left + (int) right;
+				case Subtraction -> (int) left - (int) right;
+				case Multiplication -> (int) left * (int) right;
+				case Division -> (int) left / (int) right;
 			};
-		} else if (node instanceof ParenthesizedExpressionSyntax p){
-			return evaluateExpression(p.expression());
-		} else throw new IllegalStateException("Unexpected node " + node.kind());
+		} else throw new IllegalStateException("Unexpected node " + node.boundNodeKind());
 	}
 }

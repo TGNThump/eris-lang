@@ -1,6 +1,7 @@
 package lang.eris;
 
 import lang.eris.analysis.Evaluator;
+import lang.eris.analysis.binding.Binder;
 import lang.eris.analysis.syntax.SyntaxNode;
 import lang.eris.analysis.syntax.SyntaxToken;
 import lang.eris.analysis.syntax.SyntaxTree;
@@ -8,6 +9,7 @@ import lang.eris.analysis.syntax.SyntaxTree;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 public class ErisApplication{
 
@@ -29,13 +31,18 @@ public class ErisApplication{
 			}
 
 			var syntaxTree = SyntaxTree.parse(line);
+			List<String> diagnostics = syntaxTree.diagnostics();
+			var binder = new Binder();
+			var boundExpression = binder.bindExpression(syntaxTree.root());
+
+			diagnostics.addAll(binder.getDiagnostics());
 
 			if (showTree){
 				prettyPrint(syntaxTree.root());
 			}
 
 			if (syntaxTree.diagnostics().isEmpty()){
-				var e = new Evaluator(syntaxTree.root());
+				var e = new Evaluator(boundExpression);
 				var result = e.evaluate();
 				System.out.println(result);
 			} else {
