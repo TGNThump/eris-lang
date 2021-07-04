@@ -25,7 +25,7 @@ public class ErisApplication{
 			System.out.print("> ");
 			var line = reader.readLine();
 			if (line.isBlank()){
-				return;
+				continue;
 			}
 
 			if (line.equals("#showTrees")){

@@ -54,7 +54,7 @@ public final class Lexer{
 				diagnostics.reportInvalidNumber(new TextSpan(start, position-start), text, Integer.class);
 			}
 
-			return new SyntaxToken(SyntaxKind.LiteralToken, start, text, value);
+			return new SyntaxToken(SyntaxKind.NumberToken, start, text, value);
 		}
 
 		if (Character.isWhitespace(current)){
@@ -123,17 +123,17 @@ public final class Lexer{
 			case '<' -> {
 				if (lookahead == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, start, "==", null);
+					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, start, "<=", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.LessThanToken, start, "=", null);
+					yield new SyntaxToken(SyntaxKind.LessThanToken, start, "<", null);
 				}
 			}
 			case '>' -> {
 				if (lookahead == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, start, "==", null);
+					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, start, ">=", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.GreaterThanToken, start, "=", null);
+					yield new SyntaxToken(SyntaxKind.GreaterThanToken, start, ">", null);
 				}
 			}
 			default -> {

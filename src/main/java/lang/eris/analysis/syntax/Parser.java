@@ -124,7 +124,7 @@ public final class Parser{
 				yield new NameExpressionSyntax(identifierToken);
 			}
 			default -> {
-				var literalToken = matchToken(SyntaxKind.LiteralToken);
+				var literalToken = matchToken(SyntaxKind.NumberToken);
 				yield new LiteralExpressionSyntax(literalToken);
 			}
 		};
