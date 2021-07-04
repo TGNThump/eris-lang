@@ -1,10 +1,13 @@
 package lang.eris.analysis.syntax;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
  import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,6 +81,18 @@ public class LexerTests{
 						return Stream.of(Arrays.asList(a, b));
 					}
 				}));
+	}
+
+	@Test
+	public void ensureAllTokensTested(){
+		var tokenKinds = Arrays.stream(SyntaxKind.values()).filter(k -> k.name().endsWith("Keyword") || k.name().endsWith("Token"));
+		var testedTokenKinds = Stream.concat(tokens(), separators()).map(SyntaxExample::kind);
+
+		var untestedTokenKinds = tokenKinds.collect(Collectors.toSet());
+		untestedTokenKinds.remove(SyntaxKind.BadToken);
+		untestedTokenKinds.remove(SyntaxKind.EndOfFileToken);
+		untestedTokenKinds.removeAll(testedTokenKinds.collect(Collectors.toSet()));
+		assertThat(untestedTokenKinds).isEmpty();
 	}
 
 	@ParameterizedTest

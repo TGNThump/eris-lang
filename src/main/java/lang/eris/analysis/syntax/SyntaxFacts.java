@@ -49,6 +49,8 @@ public final class SyntaxFacts{
 			case GreaterThanToken -> ">";
 			case OpenParenthesisToken -> "(";
 			case CloseParenthesisToken -> ")";
+			case TrueKeyword -> "true";
+			case FalseKeyword -> "false";
 			default -> null;
 		};
 	}
