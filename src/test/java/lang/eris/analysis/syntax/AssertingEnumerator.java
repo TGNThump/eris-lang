@@ -38,7 +38,6 @@ public class AssertingEnumerator implements Closeable {
     public void assertToken(SyntaxKind kind, String text){
         assertThat(iterator.hasNext()).isTrue();
         SyntaxNode next = iterator.next();
-        System.out.println(next.kind());
 
         assertThat(next)
                 .asInstanceOf(type(SyntaxToken.class))
@@ -49,7 +48,6 @@ public class AssertingEnumerator implements Closeable {
     public void assertNode(SyntaxKind kind){
         assertThat(iterator.hasNext()).isTrue();
         SyntaxNode next = iterator.next();
-        System.out.println(next.kind());
 
         assertThat(next)
                 .isNotInstanceOf(SyntaxToken.class)

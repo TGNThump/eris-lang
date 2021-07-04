@@ -1,6 +1,5 @@
 package lang.eris.analysis.syntax;
 
-import lang.eris.util.TreePrinter;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,7 +38,6 @@ public class ParserTests {
 
         var text = unaryText + " a " + binaryText + " b";
         var expression = SyntaxTree.parse(text).root();
-        TreePrinter.prettyPrint(expression);
 
         if (unaryPrecedence >= binaryPrecedence){
             //  binary
@@ -47,7 +45,6 @@ public class ParserTests {
             // unary  b
             //  |
             //  a
-
 
             try(var e = new AssertingEnumerator(expression)){
                 e.assertNode(SyntaxKind.BinaryExpression);
