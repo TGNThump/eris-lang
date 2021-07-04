@@ -14,7 +14,7 @@ public final class SyntaxFacts{
 		return switch (kind){
 			case StarToken, SlashToken -> 5;
 			case PlusToken, MinusToken -> 4;
-			case EqualsEqualsToken, BangEqualsToken -> 3;
+			case EqualsEqualsToken, BangEqualsToken, LessThanToken, LessThanEqualsToken, GreaterThanToken, GreaterThanEqualsToken -> 3;
 			case AmpersandAmpersandToken -> 2;
 			case PipePipeToken ->  1;
 			default -> 0;

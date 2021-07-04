@@ -107,6 +107,20 @@ public final class Lexer{
 					yield new SyntaxToken(SyntaxKind.EqualsToken, position++, "=", null);
 				}
 			}
+			case '<' -> {
+				if (peek(1) == '='){
+					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, position += 2, "==", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.LessThanToken, position++, "=", null);
+				}
+			}
+			case '>' -> {
+				if (peek(1) == '='){
+					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, position += 2, "==", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.GreaterThanToken, position++, "=", null);
+				}
+			}
 			default -> {
 				diagnostics.add("ERROR: bad character input " + current());
 				yield new SyntaxToken(SyntaxKind.BadToken, position++, text.substring(position-1, position), null);

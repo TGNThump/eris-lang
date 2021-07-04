@@ -69,7 +69,7 @@ public class ErisApplication{
 
 		System.out.println();
 
-		indent += isLast ? "   " : "│   ";
+		indent += isLast ? "   " : "│  ";
 
 		for (int i = 0; i < node.children().size(); i++){
 			prettyPrint(node.children().get(i), indent, i == node.children().size() - 1);
