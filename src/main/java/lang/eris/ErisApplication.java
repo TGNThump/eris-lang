@@ -3,10 +3,9 @@ package lang.eris;
 import lang.eris.analysis.Compilation;
 import lang.eris.analysis.Diagnostic;
 import lang.eris.analysis.VariableSymbol;
-import lang.eris.analysis.syntax.SyntaxNode;
-import lang.eris.analysis.syntax.SyntaxToken;
 import lang.eris.analysis.syntax.SyntaxTree;
 import lang.eris.util.ConsoleColor;
+import lang.eris.util.TreePrinter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class ErisApplication{
 			var syntaxTree = SyntaxTree.parse(line);
 
 			if (showTree){
-				prettyPrint(syntaxTree.root());
+				TreePrinter.prettyPrint(syntaxTree.root());
 			}
 
 			var compilation = new Compilation(syntaxTree);
@@ -57,29 +56,6 @@ public class ErisApplication{
 				}
 				System.out.println();
 			}
-		}
-	}
-
-	private static void prettyPrint(SyntaxNode node){
-		prettyPrint(node, "", true);
-	}
-
-	private static void prettyPrint(SyntaxNode node, String indent, boolean isLast){
-		var marker = isLast ? "└──" : "├──";
-		System.out.print(indent);
-		System.out.print(marker);
-		System.out.print(node.kind());
-
-		if (node instanceof SyntaxToken t && t.value() != null){
-			System.out.print(" " + t.value());
-		}
-
-		System.out.println();
-
-		indent += isLast ? "   " : "│  ";
-
-		for (int i = 0; i < node.children().size(); i++){
-			prettyPrint(node.children().get(i), indent, i == node.children().size() - 1);
 		}
 	}
 }
