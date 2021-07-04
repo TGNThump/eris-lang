@@ -1,6 +1,7 @@
 package lang.eris.analysis.binding;
 
 import lang.eris.analysis.DiagnosticBag;
+import lang.eris.analysis.VariableSymbol;
 import lang.eris.analysis.syntax.*;
 
 import java.util.Map;
@@ -8,9 +9,9 @@ import java.util.Map;
 public class Binder {
 
 	private final DiagnosticBag diagnostics = new DiagnosticBag();
-	private final Map<String, Object> variables;
+	private final Map<VariableSymbol, Object> variables;
 
-	public Binder(Map<String, Object> variables){
+	public Binder(Map<VariableSymbol, Object> variables){
 		this.variables = variables;
 	}
 
@@ -44,30 +45,26 @@ public class Binder {
 		var name = syntax.identifierToken().text();
 		var boundExpression = bindExpression(syntax.expression());
 
-		var defaultValue = getDefaultValue(boundExpression.type());
-		if (defaultValue == null) throw new IllegalStateException("Unsupported variable type " + boundExpression.type() + ".");
+		var existingVariable = variables.keySet().stream().filter(v -> v.name().equals(name)).findFirst();
+		existingVariable.ifPresent(variables::remove);
 
-		variables.put(name, defaultValue);
-		return new BoundAssignmentExpression(name, boundExpression);
-	}
+		var variable = new VariableSymbol(name, boundExpression.type());
 
-	private Object getDefaultValue(Class<?> type){
-		if (type == Integer.class) return 0;
-		if (type == Boolean.class) return false;
-		return null;
+		variables.put(variable, null);
+		return new BoundAssignmentExpression(variable, boundExpression);
 	}
 
 	private BoundExpression bindNameExpression(NameExpressionSyntax syntax){
 		var name = syntax.identifierToken().text();
-		Object value = variables.get(name);
 
-		if (value == null){
+		var variable = variables.keySet().stream().filter(v -> v.name().equals(name)).findFirst();
+
+		if (variable.isEmpty()){
 			diagnostics.reportUndefinedName(syntax.identifierToken().span(), name);
 			return new BoundLiteralExpression(0);
 		}
 
-		var type = value.getClass();
-		return new BoundVariableExpression(name, type);
+		return new BoundVariableExpression(variable.get());
 	}
 
 	private BoundExpression bindLiteralExpression(LiteralExpressionSyntax syntax){

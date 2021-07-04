@@ -1,12 +1,14 @@
 package lang.eris.analysis.binding;
 
+import lang.eris.analysis.VariableSymbol;
+
 public record BoundAssignmentExpression(
-		String name,
+		VariableSymbol variableSymbol,
 		BoundExpression boundExpression
 ) implements BoundExpression{
 	@Override
 	public Class<?> type(){
-		return boundExpression.type();
+		return variableSymbol.type();
 	}
 
 	@Override

@@ -7,9 +7,9 @@ import java.util.Objects;
 
 public final class Evaluator{
 	private final BoundExpression root;
-	private final Map<String, Object> variables;
+	private final Map<VariableSymbol, Object> variables;
 
-	public Evaluator(BoundExpression root, Map<String, Object> variables){
+	public Evaluator(BoundExpression root, Map<VariableSymbol, Object> variables){
 		this.root = root;
 		this.variables = variables;
 	}
@@ -23,10 +23,10 @@ public final class Evaluator{
 		if (node instanceof BoundLiteralExpression l){
 			return l.value();
 		} else if (node instanceof BoundVariableExpression v){
-			return variables.get(v.name());
+			return variables.get(v.variableSymbol());
 		} else if (node instanceof BoundAssignmentExpression a){
 				var value = evaluateExpression(a.boundExpression());
-				variables.put(a.name(), value);
+				variables.put(a.variableSymbol(), value);
 				return value;
 		} else if (node instanceof BoundUnaryExpression u){
 			var operand = evaluateExpression(u.operand());

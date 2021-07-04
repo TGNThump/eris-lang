@@ -9,7 +9,7 @@ public record Compilation(
 		SyntaxTree syntax
 ){
 
-	public EvaluationResult evaluate(Map<String, Object> variables){
+	public EvaluationResult evaluate(Map<VariableSymbol, Object> variables){
 		var binder = new Binder(variables);
 		var boundExpression = binder.bindExpression(syntax.root());
 

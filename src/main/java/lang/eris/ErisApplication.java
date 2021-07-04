@@ -2,6 +2,7 @@ package lang.eris;
 
 import lang.eris.analysis.Compilation;
 import lang.eris.analysis.Diagnostic;
+import lang.eris.analysis.VariableSymbol;
 import lang.eris.analysis.syntax.SyntaxNode;
 import lang.eris.analysis.syntax.SyntaxToken;
 import lang.eris.analysis.syntax.SyntaxTree;
@@ -18,7 +19,7 @@ public class ErisApplication{
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		boolean showTree = false;
-		var variables = new HashMap<String, Object>();
+		var variables = new HashMap<VariableSymbol, Object>();
 
 		while (true){
 			System.out.print("> ");
