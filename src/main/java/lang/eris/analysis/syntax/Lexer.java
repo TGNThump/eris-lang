@@ -3,10 +3,15 @@ package lang.eris.analysis.syntax;
 import lang.eris.analysis.DiagnosticBag;
 import lang.eris.analysis.TextSpan;
 
+import static java.lang.Character.*;
+
 public final class Lexer{
 	private final String text;
 	private final DiagnosticBag diagnostics = new DiagnosticBag();
 	private int position;
+
+	private int start;
+	private Object value;
 
 	public Lexer(String text){
 		this.text = text;
@@ -32,114 +37,120 @@ public final class Lexer{
 	}
 
 	public SyntaxToken lex(){
-		if (position >= text.length()){
-			return new SyntaxToken(SyntaxKind.EndOfFileToken, position, "", null);
-		}
+		start = position;
+		value = null;
 
-		int start = position;
-		char current = current();
-
-		if (Character.isDigit(current)){
-
-			while (Character.isDigit(current())){
+		var kind = switch (current()){
+			case '\0' -> SyntaxKind.EndOfFileToken;
+			case '+' -> {
 				next();
+				yield SyntaxKind.PlusToken;
 			}
-
-			String text = this.text.substring(start, position);
-
-			int value = 0;
-			try{
-				value = Integer.parseInt(text);
-			} catch (NumberFormatException nfe){
-				diagnostics.reportInvalidNumber(new TextSpan(start, position-start), text, Integer.class);
-			}
-
-			return new SyntaxToken(SyntaxKind.NumberToken, start, text, value);
-		}
-
-		if (Character.isWhitespace(current)){
-
-			while (Character.isWhitespace(current())){
+			case '-' -> {
 				next();
+				yield SyntaxKind.MinusToken;
 			}
-
-			String stringValue = text.substring(start, position);
-			return new SyntaxToken(SyntaxKind.WhitespaceToken, start, stringValue, null);
-		}
-
-		if (Character.isLetter(current())){
-
-			while (Character.isLetter(current())){
+			case '*' -> {
 				next();
+				yield SyntaxKind.StarToken;
 			}
-
-			String stringValue = text.substring(start, position);
-			var kind = SyntaxFacts.getKeywordKind(stringValue);
-			return new SyntaxToken(kind, start, stringValue, null);
-		}
-
-		next();
-		char lookahead = current();
-
-		return switch (current){
-			case '+' -> new SyntaxToken(SyntaxKind.PlusToken, start, "+", null);
-			case '-' -> new SyntaxToken(SyntaxKind.MinusToken, start, "-", null);
-			case '*' -> new SyntaxToken(SyntaxKind.StarToken, start, "*", null);
-			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, start, "/", null);
-			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, start, "(", null);
-			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, start, ")", null);
+			case '/' -> {
+				next();
+				yield SyntaxKind.SlashToken;
+			}
+			case '(' -> {
+				next();
+				yield SyntaxKind.OpenParenthesisToken;
+			}
+			case ')' -> {
+				next();
+				yield SyntaxKind.CloseParenthesisToken;
+			}
 			case '!' -> {
-				if (lookahead == '='){
+				next();
+				if (current() == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.BangEqualsToken, start, "!=", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.BangToken, start, "!", null);
-				}
+					yield SyntaxKind.BangEqualsToken;
+				} else yield SyntaxKind.BangToken;
 			}
 			case '&' -> {
-				if (lookahead == '&'){
+				next();
+				if (current() == '&'){
 					next();
-					yield new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.AmpersandToken, start, "&", null);
-				}
+					yield SyntaxKind.AmpersandAmpersandToken;
+				} else yield SyntaxKind.AmpersandToken;
 			}
 			case '|' -> {
-				if (lookahead == '|'){
+				next();
+				if (current() == '|'){
 					next();
-					yield new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.PipeToken, start, "|", null);
-				}
+					yield SyntaxKind.PipePipeToken;
+				} else yield SyntaxKind.PipeToken;
 			}
 			case '=' -> {
-				if (lookahead == '='){
+				next();
+				if (current() == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.EqualsToken, start, "=", null);
-				}
+					yield SyntaxKind.EqualsEqualsToken;
+				} else yield SyntaxKind.EqualsToken;
 			}
 			case '<' -> {
-				if (lookahead == '='){
+				next();
+				if (current() == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, start, "<=", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.LessThanToken, start, "<", null);
-				}
+					yield SyntaxKind.LessThanEqualsToken;
+				} else yield SyntaxKind.LessThanToken;
 			}
 			case '>' -> {
-				if (lookahead == '='){
+				next();
+				if (current() == '='){
 					next();
-					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, start, ">=", null);
-				} else {
-					yield new SyntaxToken(SyntaxKind.GreaterThanToken, start, ">", null);
+					yield SyntaxKind.GreaterThanEqualsToken;
+				} else yield SyntaxKind.GreaterThanToken;
+			}
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> readNumber();
+			case ' ', '\t', '\n', '\r' -> readWhitespace();
+			default -> {
+				if (isLetter(current())) {
+					yield readIdentifierOrKeyword();
+				} else if (isWhitespace(current())){
+					yield readWhitespace();
+				}  else {
+					diagnostics.reportBadCharacter(start, current());
+					next();
+					yield SyntaxKind.BadToken;
 				}
 			}
-			default -> {
-				diagnostics.reportBadCharacter(start, current());
-				yield new SyntaxToken(SyntaxKind.BadToken, start, text.substring(position-1, position), null);
-			}
 		};
+
+		var text = SyntaxFacts.getText(kind);
+		if (text == null){
+			text = this.text.substring(start, position);
+		}
+		return new SyntaxToken(kind, start, text, value);
+	}
+
+	private SyntaxKind readIdentifierOrKeyword() {
+		while (isLetter(current())) next();
+		String text = this.text.substring(start, position);
+		return SyntaxFacts.getKeywordKind(text);
+	}
+
+	private SyntaxKind readWhitespace() {
+		while (isWhitespace(current())) next();
+		return SyntaxKind.WhitespaceToken;
+	}
+
+	private SyntaxKind readNumber() {
+		while (isDigit(current())) next();
+		String text = this.text.substring(start, position);
+
+		try{
+			value = Integer.parseInt(text);
+		} catch (NumberFormatException nfe){
+			diagnostics.reportInvalidNumber(new TextSpan(start, position-start), text, Integer.class);
+		}
+
+		return SyntaxKind.NumberToken;
 	}
 }
