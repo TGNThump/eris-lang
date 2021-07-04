@@ -64,16 +64,31 @@ public final class Parser{
 	}
 
 	private ExpressionSyntax parseExpression(){
-		return parseExpression(0);
+		return parseAssignmentExpression();
+	}
+
+	private ExpressionSyntax parseAssignmentExpression(){
+		if (peek(0).kind() == SyntaxKind.IdentifierToken && peek(1).kind() == SyntaxKind.EqualsToken){
+			var identifierToken = nextToken();
+			var operatorToken = nextToken();
+			var right = parseAssignmentExpression();
+			return new AssignmentExpressionSyntax(identifierToken, operatorToken, right);
+		}
+
+		return parseBinaryExpression();
+	}
+
+	private ExpressionSyntax parseBinaryExpression(){
+		return parseBinaryExpression(0);
 	}
 
 	@SuppressWarnings("InfiniteRecursion")
-	private ExpressionSyntax parseExpression(int parentPrecedence){
+	private ExpressionSyntax parseBinaryExpression(int parentPrecedence){
 		ExpressionSyntax left;
 		var unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(current().kind());
 		if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= parentPrecedence){
 			var operatorToken = nextToken();
-			var operand = parseExpression(unaryOperatorPrecedence);
+			var operand = parseBinaryExpression(unaryOperatorPrecedence);
 			left = new UnaryExpressionSyntax(operatorToken, operand);
 		} else {
 			left = parsePrimaryExpression();
@@ -84,7 +99,7 @@ public final class Parser{
 			if (precedence == 0 || precedence <= parentPrecedence) break;
 
 			var operatorToken = nextToken();
-			var right = parseExpression(precedence);
+			var right = parseBinaryExpression(precedence);
 			left = new BinaryExpressionSyntax(left, operatorToken, right);
 		}
 
@@ -103,6 +118,10 @@ public final class Parser{
 				var keywordToken = nextToken();
 				var value = keywordToken.kind() == SyntaxKind.TrueKeyword;
 				yield new LiteralExpressionSyntax(keywordToken, value);
+			}
+			case IdentifierToken -> {
+				var identifierToken = nextToken();
+				yield new NameExpressionSyntax(identifierToken);
 			}
 			default -> {
 				var literalToken = matchToken(SyntaxKind.LiteralToken);

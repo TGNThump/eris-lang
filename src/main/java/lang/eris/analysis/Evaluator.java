@@ -1,11 +1,19 @@
 package lang.eris.analysis;
 
-import lang.eris.analysis.binding.BoundBinaryExpression;
-import lang.eris.analysis.binding.BoundExpression;
-import lang.eris.analysis.binding.BoundLiteralExpression;
-import lang.eris.analysis.binding.BoundUnaryExpression;
+import lang.eris.analysis.binding.*;
 
-public record Evaluator(BoundExpression root){
+import java.util.Map;
+import java.util.Objects;
+
+public final class Evaluator{
+	private final BoundExpression root;
+	private final Map<String, Object> variables;
+
+	public Evaluator(BoundExpression root, Map<String, Object> variables){
+		this.root = root;
+		this.variables = variables;
+	}
+
 
 	public Object evaluate(){
 		return evaluateExpression(root);
@@ -14,6 +22,12 @@ public record Evaluator(BoundExpression root){
 	private Object evaluateExpression(BoundExpression node){
 		if (node instanceof BoundLiteralExpression l){
 			return l.value();
+		} else if (node instanceof BoundVariableExpression v){
+			return variables.get(v.name());
+		} else if (node instanceof BoundAssignmentExpression a){
+				var value = evaluateExpression(a.boundExpression());
+				variables.put(a.name(), value);
+				return value;
 		} else if (node instanceof BoundUnaryExpression u){
 			var operand = evaluateExpression(u.operand());
 			return switch (u.operator().kind()){
@@ -41,4 +55,23 @@ public record Evaluator(BoundExpression root){
 			};
 		} else throw new IllegalStateException("Unexpected node " + node.boundNodeKind());
 	}
+
+	@Override
+	public boolean equals(Object obj){
+		if (obj == this) return true;
+		if (obj == null || obj.getClass() != this.getClass()) return false;
+		var that = (Evaluator) obj;
+		return Objects.equals(this.root, that.root) && Objects.equals(this.variables, that.variables);
+	}
+
+	@Override
+	public int hashCode(){
+		return Objects.hash(root, variables);
+	}
+
+	@Override
+	public String toString(){
+		return "Evaluator[" + "root=" + root + ", " + "variables=" + variables + ']';
+	}
+
 }

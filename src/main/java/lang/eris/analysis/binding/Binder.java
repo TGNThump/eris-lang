@@ -3,9 +3,16 @@ package lang.eris.analysis.binding;
 import lang.eris.analysis.DiagnosticBag;
 import lang.eris.analysis.syntax.*;
 
+import java.util.Map;
+
 public class Binder {
 
 	private final DiagnosticBag diagnostics = new DiagnosticBag();
+	private final Map<String, Object> variables;
+
+	public Binder(Map<String, Object> variables){
+		this.variables = variables;
+	}
 
 	public DiagnosticBag diagnostics(){
 		return diagnostics;
@@ -13,16 +20,54 @@ public class Binder {
 
 	public BoundExpression bindExpression(ExpressionSyntax syntax){
 
-		if (syntax instanceof LiteralExpressionSyntax literal){
+		if (syntax instanceof ParenthesizedExpressionSyntax paren){
+			return bindParenthesizedExpression(paren);
+		} else if (syntax instanceof LiteralExpressionSyntax literal){
 			return bindLiteralExpression(literal);
 		} else if (syntax instanceof UnaryExpressionSyntax unary){
 			return bindUnaryExpression(unary);
 		} else if (syntax instanceof BinaryExpressionSyntax binary){
 			return bindBinaryExpression(binary);
-		} else if (syntax instanceof ParenthesizedExpressionSyntax paren){
-			return bindExpression(paren.expression());
+		} else if (syntax instanceof NameExpressionSyntax name){
+			return bindNameExpression(name);
+		} else if (syntax instanceof AssignmentExpressionSyntax assign){
+			return bindAssignmentExpression(assign);
 		}
 		throw new IllegalStateException("Unknown syntax " + syntax.kind());
+	}
+
+	private BoundExpression bindParenthesizedExpression(ParenthesizedExpressionSyntax syntax){
+		return bindExpression(syntax.expression());
+	}
+
+	private BoundExpression bindAssignmentExpression(AssignmentExpressionSyntax syntax){
+		var name = syntax.identifierToken().text();
+		var boundExpression = bindExpression(syntax.expression());
+
+		var defaultValue = getDefaultValue(boundExpression.type());
+		if (defaultValue == null) throw new IllegalStateException("Unsupported variable type " + boundExpression.type() + ".");
+
+		variables.put(name, defaultValue);
+		return new BoundAssignmentExpression(name, boundExpression);
+	}
+
+	private Object getDefaultValue(Class<?> type){
+		if (type == Integer.class) return 0;
+		if (type == Boolean.class) return false;
+		return null;
+	}
+
+	private BoundExpression bindNameExpression(NameExpressionSyntax syntax){
+		var name = syntax.identifierToken().text();
+		Object value = variables.get(name);
+
+		if (value == null){
+			diagnostics.reportUndefinedName(syntax.identifierToken().span(), name);
+			return new BoundLiteralExpression(0);
+		}
+
+		var type = value.getClass();
+		return new BoundVariableExpression(name, type);
 	}
 
 	private BoundExpression bindLiteralExpression(LiteralExpressionSyntax syntax){

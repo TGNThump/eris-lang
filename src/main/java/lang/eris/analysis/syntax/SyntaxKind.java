@@ -34,5 +34,7 @@ public enum SyntaxKind{
 	LiteralExpression,
 	BinaryExpression,
 	UnaryExpression,
-	ParenthesizedExpression
+	ParenthesizedExpression,
+	NameExpression,
+	AssignmentExpression
 }

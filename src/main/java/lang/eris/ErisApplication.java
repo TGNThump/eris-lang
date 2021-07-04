@@ -10,6 +10,7 @@ import lang.eris.util.ConsoleColor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 
 public class ErisApplication{
 
@@ -17,6 +18,8 @@ public class ErisApplication{
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		boolean showTree = false;
+		var variables = new HashMap<String, Object>();
+
 		while (true){
 			System.out.print("> ");
 			var line = reader.readLine();
@@ -37,7 +40,7 @@ public class ErisApplication{
 			}
 
 			var compilation = new Compilation(syntaxTree);
-			var result = compilation.evaluate();
+			var result = compilation.evaluate(variables);
 
 			if (result.diagnostics().isEmpty()){
 				System.out.println(result.value());

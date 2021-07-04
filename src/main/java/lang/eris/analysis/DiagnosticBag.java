@@ -33,12 +33,20 @@ public class DiagnosticBag implements Iterable<Diagnostic>{
 		this.diagnostics.addAll(diagnostics.diagnostics);
 	}
 
+	public DiagnosticBag concat(DiagnosticBag diagnostics){
+		return new DiagnosticBag(Stream.concat(stream(), diagnostics.stream()).collect(Collectors.toList()));
+	}
+
+	public boolean isEmpty(){
+		return diagnostics.isEmpty();
+	}
+
 	private void report(TextSpan span, String message, Object... args){
 		diagnostics.add(new Diagnostic(span, message, args));
 	}
 
 	public void reportInvalidNumber(TextSpan textSpan, String text, Class<?> type){
-		report(textSpan, "The number {} isn't a valid type {}.", text, type);
+		report(textSpan, "The number {} isn't a valid {}.", text, type.getSimpleName());
 	}
 
 	public void reportBadCharacter(int position, char current){
@@ -50,18 +58,14 @@ public class DiagnosticBag implements Iterable<Diagnostic>{
 	}
 
 	public void reportUndefinedUnaryOperator(TextSpan span, String operatorText, Class<?> operandType){
-		report(span, "Unary operator {} is not defined for type {}.", operatorText, operandType);
+		report(span, "Unary operator {} is not defined for type {}.", operatorText, operandType.getSimpleName());
 	}
 
 	public void reportUndefinedBinaryOperator(TextSpan span, String operatorText, Class<?> leftType, Class<?> rightType){
-		report(span, "Binary operator {} is not defined for types {} and {}.", operatorText, leftType, rightType);
+		report(span, "Binary operator {} is not defined for types {} and {}.", operatorText, leftType.getSimpleName(), rightType.getSimpleName());
 	}
 
-	public DiagnosticBag concat(DiagnosticBag diagnostics){
-		return new DiagnosticBag(Stream.concat(stream(), diagnostics.stream()).collect(Collectors.toList()));
-	}
-
-	public boolean isEmpty(){
-		return diagnostics.isEmpty();
+	public void reportUndefinedName(TextSpan span, String name){
+		report(span, "Variable '{}' doesn't exist.", name);
 	}
 }
