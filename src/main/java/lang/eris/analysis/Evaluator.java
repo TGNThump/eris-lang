@@ -15,20 +15,23 @@ public record Evaluator(BoundExpression root){
 		if (node instanceof BoundLiteralExpression l){
 			return l.value();
 		} else if (node instanceof BoundUnaryExpression u){
-			var operand = (Integer) evaluateExpression(u.operand());
-			return switch (u.operatorKind()){
-				case NEGATION -> -operand;
-				case IDENTITY -> operand;
+			var operand = evaluateExpression(u.operand());
+			return switch (u.operator().kind()){
+				case Identity -> operand;
+				case Negation -> -(Integer) operand;
+				case LogicalNegation -> !(Boolean) operand;
 			};
 		} else if (node instanceof BoundBinaryExpression b){
-			var left = (Integer) evaluateExpression(b.left());
-			var right = (Integer) evaluateExpression(b.right());
+			var left = evaluateExpression(b.left());
+			var right = evaluateExpression(b.right());
 
-			return switch (b.operatorKind()){
-				case Addition -> left + right;
-				case Subtraction -> left - right;
-				case Multiplication -> left * right;
-				case Division -> left / right;
+			return switch (b.operator().kind()){
+				case Addition -> (Integer) left + (Integer) right;
+				case Subtraction -> (Integer) left - (Integer) right;
+				case Multiplication -> (Integer) left * (Integer) right;
+				case Division -> (Integer) left / (Integer) right;
+				case LogicalAnd -> (Boolean) left && (Boolean) right;
+				case LogicalOr -> (Boolean) left || (Boolean) right;
 			};
 		} else throw new IllegalStateException("Unexpected node " + node.boundNodeKind());
 	}

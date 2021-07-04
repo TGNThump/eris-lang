@@ -1,6 +1,7 @@
 package lang.eris.analysis.binding;
 
 public enum BoundUnaryOperatorKind{
-	IDENTITY,
-	NEGATION
+	Identity,
+	Negation,
+	LogicalNegation;
 }

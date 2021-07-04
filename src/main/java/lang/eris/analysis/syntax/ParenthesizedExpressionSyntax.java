@@ -5,13 +5,13 @@ import java.util.List;
 
 public record ParenthesizedExpressionSyntax(
 		SyntaxToken openParenthesisToken,
-		lang.eris.analysis.syntax.ExpressionSyntax expression,
-		lang.eris.analysis.syntax.SyntaxToken closeParenthesisToken
-) implements lang.eris.analysis.syntax.ExpressionSyntax{
+		ExpressionSyntax expression,
+		SyntaxToken closeParenthesisToken
+) implements ExpressionSyntax{
 
 	@Override
 	public SyntaxKind kind(){
-		return lang.eris.analysis.syntax.SyntaxKind.ParenthesizedExpression;
+		return SyntaxKind.ParenthesizedExpression;
 	}
 
 	@Override

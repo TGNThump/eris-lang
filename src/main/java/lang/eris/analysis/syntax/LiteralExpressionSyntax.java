@@ -6,7 +6,7 @@ import java.util.List;
 public record LiteralExpressionSyntax(
 		SyntaxToken literalToken,
 		Object value
-) implements lang.eris.analysis.syntax.ExpressionSyntax{
+) implements ExpressionSyntax{
 
 	public LiteralExpressionSyntax(SyntaxToken literalToken){
 		this(literalToken, literalToken.value());
@@ -14,7 +14,7 @@ public record LiteralExpressionSyntax(
 
 	@Override
 	public SyntaxKind kind(){
-		return lang.eris.analysis.syntax.SyntaxKind.LiteralExpression;
+		return SyntaxKind.LiteralExpression;
 	}
 
 	@Override

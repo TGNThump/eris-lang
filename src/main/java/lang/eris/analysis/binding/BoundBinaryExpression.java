@@ -2,7 +2,7 @@ package lang.eris.analysis.binding;
 
 public record BoundBinaryExpression(
 		BoundExpression left,
-		BoundBinaryOperatorKind operatorKind,
+		BoundBinaryOperator operator,
 		BoundExpression right
 ) implements BoundExpression{
 	@Override

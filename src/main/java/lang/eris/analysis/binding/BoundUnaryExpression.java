@@ -1,7 +1,7 @@
 package lang.eris.analysis.binding;
 
 public record BoundUnaryExpression(
-		BoundUnaryOperatorKind operatorKind,
+		BoundUnaryOperator operator,
 		BoundExpression operand
 ) implements BoundExpression{
 

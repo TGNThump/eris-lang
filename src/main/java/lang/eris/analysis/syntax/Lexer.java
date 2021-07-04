@@ -16,10 +16,15 @@ public final class Lexer{
 		return diagnostics;
 	}
 
-	private char current(){
-		if (position >= text.length()){
+	private char peek(int offset){
+		var index = position + offset;
+		if (index >= text.length()){
 			return '\0';
-		} else return text.charAt(position);
+		} else return text.charAt(index);
+	}
+
+	private char current(){
+		return peek(0);
 	}
 
 	private void next(){
@@ -74,6 +79,21 @@ public final class Lexer{
 			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, position++, "/", null);
 			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, position++, "(", null);
 			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, position++, ")", null);
+			case '!' -> new SyntaxToken(SyntaxKind.BangToken, position++, "!", null);
+			case '&' -> {
+				if (peek(1) == '&'){
+					yield new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, position += 2, "&&", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.AmpersandToken, position++, "&", null);
+				}
+			}
+			case '|' -> {
+				if (peek(1) == '|'){
+					yield new SyntaxToken(SyntaxKind.PipePipeToken, position += 2, "||", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.PipeToken, position++, "|", null);
+				}
+			}
 			default -> {
 				diagnostics.add("ERROR: bad character input " + current());
 				yield new SyntaxToken(SyntaxKind.BadToken, position++, text.substring(position-1, position), null);
