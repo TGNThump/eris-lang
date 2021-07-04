@@ -11,20 +11,20 @@ public final class Parser{
 	public Parser(String text){
 		tokens = new ArrayList<>();
 
-		var lexer = new lang.eris.analysis.syntax.Lexer(text);
-		lang.eris.analysis.syntax.SyntaxToken token;
+		var lexer = new Lexer(text);
+		SyntaxToken token;
 		do {
 			token = lexer.lex();
 
-			if (token.kind() != SyntaxKind.WhitespaceToken && token.kind() != lang.eris.analysis.syntax.SyntaxKind.BadToken){
+			if (token.kind() != SyntaxKind.WhitespaceToken && token.kind() != SyntaxKind.BadToken){
 				tokens.add(token);
 			}
-		} while (token.kind() != lang.eris.analysis.syntax.SyntaxKind.EndOfFileToken);
+		} while (token.kind() != SyntaxKind.EndOfFileToken);
 
 		diagnostics.addAll(lexer.getDiagnostics());
 	}
 
-	private lang.eris.analysis.syntax.SyntaxToken peek(int offset){
+	private SyntaxToken peek(int offset){
 		var index = position + offset;
 		if (index >= tokens.size())
 			return tokens.get(tokens.size()-1);
@@ -32,11 +32,11 @@ public final class Parser{
 		return tokens.get(index);
 	}
 
-	private lang.eris.analysis.syntax.SyntaxToken current(){
+	private SyntaxToken current(){
 		return peek(0);
 	}
 
-	private lang.eris.analysis.syntax.SyntaxToken nextToken(){
+	private SyntaxToken nextToken(){
 		var current = current();
 		position++;
 		return current;
@@ -44,26 +44,26 @@ public final class Parser{
 
 	public SyntaxTree parse(){
 		var expression = parseExpression();
-		var endOfFileToken = matchToken(lang.eris.analysis.syntax.SyntaxKind.EndOfFileToken);
-		return new lang.eris.analysis.syntax.SyntaxTree(diagnostics, expression, endOfFileToken);
+		var endOfFileToken = matchToken(SyntaxKind.EndOfFileToken);
+		return new SyntaxTree(diagnostics, expression, endOfFileToken);
 	}
 
-	private lang.eris.analysis.syntax.SyntaxToken matchToken(lang.eris.analysis.syntax.SyntaxKind kind){
+	private SyntaxToken matchToken(SyntaxKind kind){
 		if (current().kind() == kind){
 			return nextToken();
 		}
 
 		diagnostics.add("Unexpected token <" + current().kind() +">, expected <" + kind + ">");
-		return new lang.eris.analysis.syntax.SyntaxToken(kind, current().position(), null, null);
+		return new SyntaxToken(kind, current().position(), null, null);
 	}
 
-	private lang.eris.analysis.syntax.ExpressionSyntax parseExpression(){
+	private ExpressionSyntax parseExpression(){
 		return parseExpression(0);
 	}
 
 	@SuppressWarnings("InfiniteRecursion")
-	private lang.eris.analysis.syntax.ExpressionSyntax parseExpression(int parentPrecedence){
-		lang.eris.analysis.syntax.ExpressionSyntax left;
+	private ExpressionSyntax parseExpression(int parentPrecedence){
+		ExpressionSyntax left;
 		var unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(current().kind());
 		if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= parentPrecedence){
 			var operatorToken = nextToken();
@@ -74,26 +74,34 @@ public final class Parser{
 		}
 
 		while (true){
-			var precedence = lang.eris.analysis.syntax.SyntaxFacts.getBinaryOperatorPrecedence(current().kind());
+			var precedence = SyntaxFacts.getBinaryOperatorPrecedence(current().kind());
 			if (precedence == 0 || precedence <= parentPrecedence) break;
 
 			var operatorToken = nextToken();
 			var right = parseExpression(precedence);
-			left = new lang.eris.analysis.syntax.BinaryExpressionSyntax(left, operatorToken, right);
+			left = new BinaryExpressionSyntax(left, operatorToken, right);
 		}
 
 		return left;
 	}
 
-	private lang.eris.analysis.syntax.ExpressionSyntax parsePrimaryExpression(){
-		if (current().kind() == lang.eris.analysis.syntax.SyntaxKind.OpenParenthesisToken){
-			var left = nextToken();
-			var expression = parseExpression();
-			var right = matchToken(lang.eris.analysis.syntax.SyntaxKind.CloseParenthesisToken);
-			return new lang.eris.analysis.syntax.ParenthesizedExpressionSyntax(left, expression, right);
-		}
-
-		var literalToken = matchToken(lang.eris.analysis.syntax.SyntaxKind.LiteralToken);
-		return new lang.eris.analysis.syntax.LiteralExpressionSyntax(literalToken);
+	private ExpressionSyntax parsePrimaryExpression(){
+		return switch (current().kind()){
+			case OpenParenthesisToken -> {
+				var left = nextToken();
+				var expression = parseExpression();
+				var right = matchToken(SyntaxKind.CloseParenthesisToken);
+				yield new ParenthesizedExpressionSyntax(left, expression, right);
+			}
+			case FalseKeyword, TrueKeyword -> {
+				var keywordToken = nextToken();
+				var value = keywordToken.kind() == SyntaxKind.TrueKeyword;
+				yield new LiteralExpressionSyntax(keywordToken, value);
+			}
+			default -> {
+				var literalToken = matchToken(SyntaxKind.LiteralToken);
+				yield new LiteralExpressionSyntax(literalToken);
+			}
+		};
 	}
 }

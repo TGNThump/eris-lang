@@ -17,4 +17,12 @@ public final class SyntaxFacts{
 			default -> 0;
 		};
 	}
+
+	public static SyntaxKind getKeywordKind(String keyword){
+		return switch (keyword){
+			case "true" -> SyntaxKind.TrueKeyword;
+			case "false" -> SyntaxKind.FalseKeyword;
+			default -> SyntaxKind.IdentifierToken;
+		};
+	}
 }

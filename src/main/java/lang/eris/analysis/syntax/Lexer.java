@@ -28,7 +28,7 @@ public final class Lexer{
 
 	public SyntaxToken lex(){
 		if (position >= text.length()){
-			return new lang.eris.analysis.syntax.SyntaxToken(SyntaxKind.EndOfFileToken, position, "", null);
+			return new SyntaxToken(SyntaxKind.EndOfFileToken, position, "", null);
 		}
 
 		if (Character.isDigit(current())){
@@ -41,7 +41,7 @@ public final class Lexer{
 			String stringValue = text.substring(start, position);
 			int value = Integer.parseInt(stringValue);
 
-			return new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.LiteralToken, start, stringValue, value);
+			return new SyntaxToken(SyntaxKind.LiteralToken, start, stringValue, value);
 		}
 
 		if (Character.isWhitespace(current())){
@@ -52,19 +52,31 @@ public final class Lexer{
 			}
 
 			String stringValue = text.substring(start, position);
-			return new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.WhitespaceToken, start, stringValue, null);
+			return new SyntaxToken(SyntaxKind.WhitespaceToken, start, stringValue, null);
+		}
+
+		if (Character.isLetter(current())){
+			var start = position;
+
+			while (Character.isLetter(current())){
+				next();
+			}
+
+			String stringValue = text.substring(start, position);
+			var kind = SyntaxFacts.getKeywordKind(stringValue);
+			return new SyntaxToken(kind, start, stringValue, null);
 		}
 
 		return switch (current()){
-			case '+' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.PlusToken, position++, "+", null);
-			case '-' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.MinusToken, position++, "-", null);
-			case '*' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.StarToken, position++, "*", null);
-			case '/' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.SlashToken, position++, "/", null);
-			case '(' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.OpenParenthesisToken, position++, "(", null);
-			case ')' -> new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.CloseParenthesisToken, position++, ")", null);
+			case '+' -> new SyntaxToken(SyntaxKind.PlusToken, position++, "+", null);
+			case '-' -> new SyntaxToken(SyntaxKind.MinusToken, position++, "-", null);
+			case '*' -> new SyntaxToken(SyntaxKind.StarToken, position++, "*", null);
+			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, position++, "/", null);
+			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, position++, "(", null);
+			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, position++, ")", null);
 			default -> {
 				diagnostics.add("ERROR: bad character input " + current());
-				yield new lang.eris.analysis.syntax.SyntaxToken(lang.eris.analysis.syntax.SyntaxKind.BadToken, position++, text.substring(position-1, position), null);
+				yield new SyntaxToken(SyntaxKind.BadToken, position++, text.substring(position-1, position), null);
 			}
 		};
 	}

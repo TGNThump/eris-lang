@@ -4,8 +4,13 @@ import java.util.Collections;
 import java.util.List;
 
 public record LiteralExpressionSyntax(
-		SyntaxToken literalToken
+		SyntaxToken literalToken,
+		Object value
 ) implements lang.eris.analysis.syntax.ExpressionSyntax{
+
+	public LiteralExpressionSyntax(SyntaxToken literalToken){
+		this(literalToken, literalToken.value());
+	}
 
 	@Override
 	public SyntaxKind kind(){

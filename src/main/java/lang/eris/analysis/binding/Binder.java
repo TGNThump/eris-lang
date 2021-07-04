@@ -25,7 +25,7 @@ public class Binder {
 	}
 
 	private BoundExpression bindLiteralExpression(LiteralExpressionSyntax syntax){
-		var value = (Integer) syntax.literalToken().value();
+		var value = syntax.value();
 		if (value == null) value = 0;
 		return new BoundLiteralExpression(value);
 	}
