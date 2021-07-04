@@ -1,112 +1,120 @@
 package lang.eris.analysis.syntax;
 
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+ import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.jupiter.params.provider.Arguments.of;
 
 public class LexerTests{
 
+	private record SyntaxExample(SyntaxKind kind, String text){}
+
 	@SuppressWarnings("unused")
-	private static Stream<Arguments> tokens(){
+	private static Stream<SyntaxExample> tokens(){
 		return Stream.of(
-				of(SyntaxKind.PlusToken, "+"),
-				of(SyntaxKind.MinusToken, "-"),
-				of(SyntaxKind.StarToken, "*"),
-				of(SyntaxKind.SlashToken, "/"),
-				of(SyntaxKind.BangToken, "!"),
-				of(SyntaxKind.BangEqualsToken, "!="),
-				of(SyntaxKind.AmpersandAmpersandToken, "&&"),
-				of(SyntaxKind.AmpersandToken, "&"),
-				of(SyntaxKind.PipePipeToken, "||"),
-				of(SyntaxKind.PipeToken, "|"),
-				of(SyntaxKind.EqualsEqualsToken, "=="),
-				of(SyntaxKind.EqualsToken, "="),
-				of(SyntaxKind.LessThanEqualsToken, "<="),
-				of(SyntaxKind.LessThanToken, "<"),
-				of(SyntaxKind.GreaterThanEqualsToken, ">="),
-				of(SyntaxKind.GreaterThanToken, ">"),
-				of(SyntaxKind.OpenParenthesisToken, "("),
-				of(SyntaxKind.CloseParenthesisToken, ")"),
-				of(SyntaxKind.FalseKeyword, "false"),
-				of(SyntaxKind.TrueKeyword, "true"),
-				of(SyntaxKind.WhitespaceToken, " "),
-				of(SyntaxKind.WhitespaceToken, "  "),
-				of(SyntaxKind.WhitespaceToken, "\r"),
-				of(SyntaxKind.WhitespaceToken, "\n"),
-				of(SyntaxKind.WhitespaceToken, "\r\n"),
-				of(SyntaxKind.NumberToken, "1"),
-				of(SyntaxKind.NumberToken, "123"),
-				of(SyntaxKind.IdentifierToken, "a"),
-				of(SyntaxKind.IdentifierToken, "abc")
+				new SyntaxExample(SyntaxKind.PlusToken, "+"),
+				new SyntaxExample(SyntaxKind.MinusToken, "-"),
+				new SyntaxExample(SyntaxKind.StarToken, "*"),
+				new SyntaxExample(SyntaxKind.SlashToken, "/"),
+				new SyntaxExample(SyntaxKind.BangToken, "!"),
+				new SyntaxExample(SyntaxKind.BangEqualsToken, "!="),
+				new SyntaxExample(SyntaxKind.AmpersandAmpersandToken, "&&"),
+				new SyntaxExample(SyntaxKind.AmpersandToken, "&"),
+				new SyntaxExample(SyntaxKind.PipePipeToken, "||"),
+				new SyntaxExample(SyntaxKind.PipeToken, "|"),
+				new SyntaxExample(SyntaxKind.EqualsEqualsToken, "=="),
+				new SyntaxExample(SyntaxKind.EqualsToken, "="),
+				new SyntaxExample(SyntaxKind.LessThanEqualsToken, "<="),
+				new SyntaxExample(SyntaxKind.LessThanToken, "<"),
+				new SyntaxExample(SyntaxKind.GreaterThanEqualsToken, ">="),
+				new SyntaxExample(SyntaxKind.GreaterThanToken, ">"),
+				new SyntaxExample(SyntaxKind.OpenParenthesisToken, "("),
+				new SyntaxExample(SyntaxKind.CloseParenthesisToken, ")"),
+				new SyntaxExample(SyntaxKind.FalseKeyword, "false"),
+				new SyntaxExample(SyntaxKind.TrueKeyword, "true"),
+				new SyntaxExample(SyntaxKind.NumberToken, "1"),
+				new SyntaxExample(SyntaxKind.NumberToken, "123"),
+				new SyntaxExample(SyntaxKind.IdentifierToken, "a"),
+				new SyntaxExample(SyntaxKind.IdentifierToken, "abc")
 		);
 	}
 
-	private static boolean requiresSeperator(SyntaxKind t1Kind, SyntaxKind t2Kind){
+	@SuppressWarnings("unused")
+	private static Stream<SyntaxExample> seperators(){
+		return Stream.of(
+				new SyntaxExample(SyntaxKind.WhitespaceToken, " "),
+				new SyntaxExample(SyntaxKind.WhitespaceToken, "  "),
+				new SyntaxExample(SyntaxKind.WhitespaceToken, "\r"),
+				new SyntaxExample(SyntaxKind.WhitespaceToken, "\n"),
+				new SyntaxExample(SyntaxKind.WhitespaceToken, "\r\n")
+		);
+	}
 
-		if (t1Kind == SyntaxKind.IdentifierToken && t2Kind == SyntaxKind.IdentifierToken) return true;
-		if (t1Kind == SyntaxKind.NumberToken && t2Kind == SyntaxKind.NumberToken) return true;
-		if (t1Kind == SyntaxKind.BangToken && t2Kind == SyntaxKind.EqualsToken) return true;
-		if (t1Kind == SyntaxKind.EqualsToken && t2Kind == SyntaxKind.EqualsToken) return true;
-		if (t1Kind == SyntaxKind.EqualsToken && t2Kind == SyntaxKind.EqualsEqualsToken) return true;
-		if (t1Kind == SyntaxKind.BangToken && t2Kind == SyntaxKind.EqualsEqualsToken) return true;
-		if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandAmpersandToken) return true;
-		if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandToken) return true;
-		if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipePipeToken) return true;
-		if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipeToken) return true;
-		if (t1Kind == SyntaxKind.LessThanToken && t2Kind == SyntaxKind.EqualsEqualsToken) return true;
-		if (t1Kind == SyntaxKind.LessThanToken && t2Kind == SyntaxKind.EqualsToken) return true;
-		if (t1Kind == SyntaxKind.GreaterThanToken && t2Kind == SyntaxKind.EqualsEqualsToken) return true;
-		if (t1Kind == SyntaxKind.GreaterThanToken && t2Kind == SyntaxKind.EqualsToken) return true;
-		if (t1Kind == SyntaxKind.WhitespaceToken && t2Kind == SyntaxKind.WhitespaceToken) return true;
+	private static boolean requiresSeparator(SyntaxKind k1, SyntaxKind k2){
 
-		var t1IsKeyword = t1Kind.toString().endsWith("Keyword");
-		var t2IsKeyword = t2Kind.toString().endsWith("Keyword");
+		if (k1 == SyntaxKind.IdentifierToken && k2 == SyntaxKind.IdentifierToken) return true;
+		if (k1 == SyntaxKind.NumberToken && k2 == SyntaxKind.NumberToken) return true;
+		if (k1 == SyntaxKind.BangToken && k2 == SyntaxKind.EqualsToken) return true;
+		if (k1 == SyntaxKind.EqualsToken && k2 == SyntaxKind.EqualsToken) return true;
+		if (k1 == SyntaxKind.EqualsToken && k2 == SyntaxKind.EqualsEqualsToken) return true;
+		if (k1 == SyntaxKind.BangToken && k2 == SyntaxKind.EqualsEqualsToken) return true;
+		if (k1 == SyntaxKind.AmpersandToken && k2 == SyntaxKind.AmpersandAmpersandToken) return true;
+		if (k1 == SyntaxKind.AmpersandToken && k2 == SyntaxKind.AmpersandToken) return true;
+		if (k1 == SyntaxKind.PipeToken && k2 == SyntaxKind.PipePipeToken) return true;
+		if (k1 == SyntaxKind.PipeToken && k2 == SyntaxKind.PipeToken) return true;
+		if (k1 == SyntaxKind.LessThanToken && k2 == SyntaxKind.EqualsEqualsToken) return true;
+		if (k1 == SyntaxKind.LessThanToken && k2 == SyntaxKind.EqualsToken) return true;
+		if (k1 == SyntaxKind.GreaterThanToken && k2 == SyntaxKind.EqualsEqualsToken) return true;
+		if (k1 == SyntaxKind.GreaterThanToken && k2 == SyntaxKind.EqualsToken) return true;
 
-		if (t1IsKeyword && t2IsKeyword) return true;
-		if (t1IsKeyword && t2Kind == SyntaxKind.IdentifierToken) return true;
-		if (t1Kind == SyntaxKind.IdentifierToken && t2IsKeyword) return true;
+		var k1IsKeyword = k1.toString().endsWith("Keyword");
+		var k2IsKeyword = k2.toString().endsWith("Keyword");
+
+		if (k1IsKeyword && k2IsKeyword) return true;
+		if (k1IsKeyword && k2 == SyntaxKind.IdentifierToken) return true;
+		if (k1 == SyntaxKind.IdentifierToken && k2IsKeyword) return true;
 
 		return false;
 	}
 
 	@SuppressWarnings("unused")
-	private static Stream<Arguments> tokenPairs(){
+	private static Stream<List<SyntaxExample>> tokenSequences(){
 		return tokens()
-				.flatMap(a -> tokens().map(b -> of(a.get()[0], a.get()[1], b.get()[0], b.get()[1])))
-				.filter(args -> {
-					SyntaxKind t1Kind = (SyntaxKind) args.get()[0];
-					SyntaxKind t2Kind = (SyntaxKind) args.get()[2];
-
-					return !requiresSeperator(t1Kind, t2Kind);
-				});
+				.flatMap(a -> tokens().flatMap(b -> {
+					if (requiresSeparator(a.kind, b.kind)){
+						return seperators().map(sep -> Arrays.asList(a, sep, b));
+					} else {
+						return Stream.of(Arrays.asList(a, b));
+					}
+				}));
 	}
 
 	@ParameterizedTest
-	@MethodSource("tokens")
-	public void lexerLexesToken(SyntaxKind kind, String text){
-		var tokens = SyntaxTree.parseTokens(text);
+	@MethodSource({"tokens", "seperators"})
+	public void lexerLexesToken(SyntaxExample syntaxExample){
+		var tokens = SyntaxTree.parseTokens(syntaxExample.text);
 
 		assertThat(tokens)
 				.singleElement()
 				.extracting(SyntaxToken::kind, SyntaxToken::text)
-				.containsExactly(kind, text);
+				.containsExactly(syntaxExample.kind, syntaxExample.text);
 	}
 
 	@ParameterizedTest
-	@MethodSource("tokenPairs")
-	public void lexerLexesTokenPairs(SyntaxKind aKind, String aText, SyntaxKind bKind, String bText){
-		var tokens = SyntaxTree.parseTokens(aText + bText);
+	@MethodSource("tokenSequences")
+	public void lexerLexesTokenSequences(List<SyntaxExample> sequence){
+		var tokens = SyntaxTree.parseTokens(sequence.stream().map(SyntaxExample::text).collect(Collectors.joining()));
 
 		assertThat(tokens)
-				.elements(0, 1)
+				.hasSize(sequence.size())
 				.extracting(SyntaxToken::kind, SyntaxToken::text)
-				.containsExactly(tuple(aKind, aText), tuple(bKind, bText));
+				.containsSequence(sequence.stream().map(ex -> tuple(ex.kind, ex.text)).toList());
 	}
 
 }
