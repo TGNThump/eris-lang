@@ -1,18 +1,18 @@
 package lang.eris.analysis.syntax;
 
-import java.util.ArrayList;
-import java.util.List;
+import lang.eris.analysis.DiagnosticBag;
+import lang.eris.analysis.TextSpan;
 
 public final class Lexer{
 	private final String text;
-	private final List<String> diagnostics = new ArrayList<>();
+	private final DiagnosticBag diagnostics = new DiagnosticBag();
 	private int position;
 
 	public Lexer(String text){
 		this.text = text;
 	}
 
-	public List<String> getDiagnostics(){
+	public DiagnosticBag diagnostics(){
 		return diagnostics;
 	}
 
@@ -36,21 +36,28 @@ public final class Lexer{
 			return new SyntaxToken(SyntaxKind.EndOfFileToken, position, "", null);
 		}
 
-		if (Character.isDigit(current())){
-			var start = position;
+		int start = position;
+		char current = current();
+
+		if (Character.isDigit(current)){
 
 			while (Character.isDigit(current())){
 				next();
 			}
 
-			String stringValue = text.substring(start, position);
-			int value = Integer.parseInt(stringValue);
+			String text = this.text.substring(start, position);
 
-			return new SyntaxToken(SyntaxKind.LiteralToken, start, stringValue, value);
+			int value = 0;
+			try{
+				value = Integer.parseInt(text);
+			} catch (NumberFormatException nfe){
+				diagnostics.reportInvalidNumber(new TextSpan(start, position-start), text, Integer.class);
+			}
+
+			return new SyntaxToken(SyntaxKind.LiteralToken, start, text, value);
 		}
 
-		if (Character.isWhitespace(current())){
-			var start = position;
+		if (Character.isWhitespace(current)){
 
 			while (Character.isWhitespace(current())){
 				next();
@@ -61,7 +68,6 @@ public final class Lexer{
 		}
 
 		if (Character.isLetter(current())){
-			var start = position;
 
 			while (Character.isLetter(current())){
 				next();
@@ -72,58 +78,67 @@ public final class Lexer{
 			return new SyntaxToken(kind, start, stringValue, null);
 		}
 
-		return switch (current()){
-			case '+' -> new SyntaxToken(SyntaxKind.PlusToken, position++, "+", null);
-			case '-' -> new SyntaxToken(SyntaxKind.MinusToken, position++, "-", null);
-			case '*' -> new SyntaxToken(SyntaxKind.StarToken, position++, "*", null);
-			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, position++, "/", null);
-			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, position++, "(", null);
-			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, position++, ")", null);
+		next();
+		char lookahead = current();
+
+		return switch (current){
+			case '+' -> new SyntaxToken(SyntaxKind.PlusToken, start, "+", null);
+			case '-' -> new SyntaxToken(SyntaxKind.MinusToken, start, "-", null);
+			case '*' -> new SyntaxToken(SyntaxKind.StarToken, start, "*", null);
+			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, start, "/", null);
+			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, start, "(", null);
+			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, start, ")", null);
 			case '!' -> {
-				if (peek(1) == '='){
-					yield new SyntaxToken(SyntaxKind.BangEqualsToken, position += 2, "!=", null);
+				if (lookahead == '='){
+					next();
+					yield new SyntaxToken(SyntaxKind.BangEqualsToken, start, "!=", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.BangToken, position++, "!", null);
+					yield new SyntaxToken(SyntaxKind.BangToken, start, "!", null);
 				}
 			}
 			case '&' -> {
-				if (peek(1) == '&'){
-					yield new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, position += 2, "&&", null);
+				if (lookahead == '&'){
+					next();
+					yield new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.AmpersandToken, position++, "&", null);
+					yield new SyntaxToken(SyntaxKind.AmpersandToken, start, "&", null);
 				}
 			}
 			case '|' -> {
-				if (peek(1) == '|'){
-					yield new SyntaxToken(SyntaxKind.PipePipeToken, position += 2, "||", null);
+				if (lookahead == '|'){
+					next();
+					yield new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.PipeToken, position++, "|", null);
+					yield new SyntaxToken(SyntaxKind.PipeToken, start, "|", null);
 				}
 			}
 			case '=' -> {
-				if (peek(1) == '='){
-					yield new SyntaxToken(SyntaxKind.EqualsEqualsToken, position += 2, "==", null);
+				if (lookahead == '='){
+					next();
+					yield new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.EqualsToken, position++, "=", null);
+					yield new SyntaxToken(SyntaxKind.EqualsToken, start, "=", null);
 				}
 			}
 			case '<' -> {
-				if (peek(1) == '='){
-					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, position += 2, "==", null);
+				if (lookahead == '='){
+					next();
+					yield new SyntaxToken(SyntaxKind.LessThanEqualsToken, start, "==", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.LessThanToken, position++, "=", null);
+					yield new SyntaxToken(SyntaxKind.LessThanToken, start, "=", null);
 				}
 			}
 			case '>' -> {
-				if (peek(1) == '='){
-					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, position += 2, "==", null);
+				if (lookahead == '='){
+					next();
+					yield new SyntaxToken(SyntaxKind.GreaterThanEqualsToken, start, "==", null);
 				} else {
-					yield new SyntaxToken(SyntaxKind.GreaterThanToken, position++, "=", null);
+					yield new SyntaxToken(SyntaxKind.GreaterThanToken, start, "=", null);
 				}
 			}
 			default -> {
-				diagnostics.add("ERROR: bad character input " + current());
-				yield new SyntaxToken(SyntaxKind.BadToken, position++, text.substring(position-1, position), null);
+				diagnostics.reportBadCharacter(start, current());
+				yield new SyntaxToken(SyntaxKind.BadToken, start, text.substring(position-1, position), null);
 			}
 		};
 	}

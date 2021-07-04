@@ -1,11 +1,13 @@
 package lang.eris.analysis.syntax;
 
+import lang.eris.analysis.DiagnosticBag;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class Parser{
 	private final List<SyntaxToken> tokens;
-	private final List<String> diagnostics = new ArrayList<>();
+	private final DiagnosticBag diagnostics = new DiagnosticBag();
 	private int position;
 
 	public Parser(String text){
@@ -21,7 +23,11 @@ public final class Parser{
 			}
 		} while (token.kind() != SyntaxKind.EndOfFileToken);
 
-		diagnostics.addAll(lexer.getDiagnostics());
+		diagnostics.addAll(lexer.diagnostics());
+	}
+
+	public DiagnosticBag diagnostics(){
+		return diagnostics;
 	}
 
 	private SyntaxToken peek(int offset){
@@ -53,8 +59,8 @@ public final class Parser{
 			return nextToken();
 		}
 
-		diagnostics.add("Unexpected token <" + current().kind() +">, expected <" + kind + ">");
-		return new SyntaxToken(kind, current().position(), null, null);
+		diagnostics.reportUnexpectedToken(current().span(), current().kind(), kind);
+		return new SyntaxToken(kind, current().position(), current().text(), null);
 	}
 
 	private ExpressionSyntax parseExpression(){

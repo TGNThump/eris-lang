@@ -1,15 +1,13 @@
 package lang.eris.analysis.binding;
 
+import lang.eris.analysis.DiagnosticBag;
 import lang.eris.analysis.syntax.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Binder {
 
-	private final List<String> diagnostics = new ArrayList<>();
+	private final DiagnosticBag diagnostics = new DiagnosticBag();
 
-	public List<String> getDiagnostics(){
+	public DiagnosticBag diagnostics(){
 		return diagnostics;
 	}
 
@@ -37,7 +35,7 @@ public class Binder {
 		var boundOperand = bindExpression(syntax.operand());
 		var boundOperator = BoundUnaryOperator.bind(syntax.operator().kind(), boundOperand.type());
 		if (boundOperator == null){
-			diagnostics.add("Unary operator " + syntax.operator().text() + " is not defined for type " + boundOperand.type());
+			diagnostics.reportUndefinedUnaryOperator(syntax.operator().span(), syntax.operator().text(), boundOperand.type());
 			return boundOperand;
 		}
 		return new BoundUnaryExpression(boundOperator, boundOperand);
@@ -49,7 +47,7 @@ public class Binder {
 		var boundOperator = BoundBinaryOperator.bind(syntax.operator().kind(), boundLeft.type(), boundRight.type());
 
 		if (boundOperator == null){
-			diagnostics.add("Binary operator " + syntax.operator().text() + " is not defined for types " + boundLeft.type() + " and " + boundRight.type());
+			diagnostics.reportUndefinedBinaryOperator(syntax.operator().span(), syntax.operator().text(), boundLeft.type(), boundRight.type());
 			return boundLeft;
 		}
 

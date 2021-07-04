@@ -1,9 +1,9 @@
 package lang.eris.analysis.syntax;
 
-import java.util.List;
+import lang.eris.analysis.DiagnosticBag;
 
 public final record SyntaxTree(
-		List<String> diagnostics,
+		DiagnosticBag diagnostics,
 		ExpressionSyntax root,
 		SyntaxToken endOfFileToken
 ){

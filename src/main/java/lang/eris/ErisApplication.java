@@ -1,15 +1,15 @@
 package lang.eris;
 
-import lang.eris.analysis.Evaluator;
-import lang.eris.analysis.binding.Binder;
+import lang.eris.analysis.Compilation;
+import lang.eris.analysis.Diagnostic;
 import lang.eris.analysis.syntax.SyntaxNode;
 import lang.eris.analysis.syntax.SyntaxToken;
 import lang.eris.analysis.syntax.SyntaxTree;
+import lang.eris.util.ConsoleColor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 public class ErisApplication{
 
@@ -24,31 +24,34 @@ public class ErisApplication{
 				return;
 			}
 
-			if (line.equals("#showTree")){
+			if (line.equals("#showTrees")){
 				showTree = !showTree;
 				System.out.println(showTree ? "Showing parse trees." : "Not showing parse trees.");
 				continue;
 			}
 
 			var syntaxTree = SyntaxTree.parse(line);
-			List<String> diagnostics = syntaxTree.diagnostics();
-			var binder = new Binder();
-			var boundExpression = binder.bindExpression(syntaxTree.root());
-
-			diagnostics.addAll(binder.getDiagnostics());
 
 			if (showTree){
 				prettyPrint(syntaxTree.root());
 			}
 
-			if (syntaxTree.diagnostics().isEmpty()){
-				var e = new Evaluator(boundExpression);
-				var result = e.evaluate();
-				System.out.println(result);
+			var compilation = new Compilation(syntaxTree);
+			var result = compilation.evaluate();
+
+			if (result.diagnostics().isEmpty()){
+				System.out.println(result.value());
 			} else {
-				for (String diagnostic : syntaxTree.diagnostics()){
-					System.out.println(diagnostic);
+				for (Diagnostic diagnostic : result.diagnostics()){
+					var prefix = line.substring(0, diagnostic.span().start());
+					var error = line.substring(diagnostic.span().start(), diagnostic.span().end());
+					var suffix = line.substring(diagnostic.span().end());
+
+					System.out.println();
+					System.out.println("" + ConsoleColor.RED + diagnostic + ConsoleColor.RESET);
+					System.out.println("    " + prefix + ConsoleColor.RED + error + ConsoleColor.RESET + suffix);
 				}
+				System.out.println();
 			}
 		}
 	}
