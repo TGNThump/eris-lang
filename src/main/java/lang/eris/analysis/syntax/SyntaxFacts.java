@@ -28,4 +28,28 @@ public final class SyntaxFacts{
 			default -> SyntaxKind.IdentifierToken;
 		};
 	}
+
+	public static String getText(SyntaxKind kind){
+		return switch (kind){
+			case PlusToken -> "+";
+			case MinusToken -> "-";
+			case StarToken -> "*";
+			case SlashToken -> "/";
+			case BangToken -> "!";
+			case BangEqualsToken -> "!=";
+			case AmpersandAmpersandToken -> "&&";
+			case AmpersandToken -> "&";
+			case PipePipeToken -> "||";
+			case PipeToken -> "|";
+			case EqualsEqualsToken -> "==";
+			case EqualsToken -> "=";
+			case LessThanEqualsToken -> "<=";
+			case LessThanToken -> "<";
+			case GreaterThanEqualsToken -> ">=";
+			case GreaterThanToken -> ">";
+			case OpenParenthesisToken -> "(";
+			case CloseParenthesisToken -> ")";
+			default -> null;
+		};
+	}
 }
