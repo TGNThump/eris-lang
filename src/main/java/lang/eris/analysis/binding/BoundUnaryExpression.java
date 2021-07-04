@@ -7,7 +7,7 @@ public record BoundUnaryExpression(
 
 	@Override
 	public Class<?> type(){
-		return operand.type();
+		return operator.resultType();
 	}
 
 	@Override

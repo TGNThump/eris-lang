@@ -5,15 +5,16 @@ public final class SyntaxFacts{
 
 	public static int getUnaryOperatorPrecedence(SyntaxKind kind){
 		return switch (kind){
-			case PlusToken, MinusToken, BangToken -> 5;
+			case PlusToken, MinusToken, BangToken -> 6;
 			default -> 0;
 		};
 	}
 
 	public static int getBinaryOperatorPrecedence(SyntaxKind kind){
 		return switch (kind){
-			case StarToken, SlashToken -> 4;
-			case PlusToken, MinusToken -> 3;
+			case StarToken, SlashToken -> 5;
+			case PlusToken, MinusToken -> 4;
+			case EqualsEqualsToken, BangEqualsToken -> 3;
 			case AmpersandAmpersandToken -> 2;
 			case PipePipeToken ->  1;
 			default -> 0;

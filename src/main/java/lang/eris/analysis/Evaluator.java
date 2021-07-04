@@ -30,6 +30,8 @@ public record Evaluator(BoundExpression root){
 				case Subtraction -> (Integer) left - (Integer) right;
 				case Multiplication -> (Integer) left * (Integer) right;
 				case Division -> (Integer) left / (Integer) right;
+				case Equals -> left.equals(right);
+				case NotEquals -> !left.equals(right);
 				case LogicalAnd -> (Boolean) left && (Boolean) right;
 				case LogicalOr -> (Boolean) left || (Boolean) right;
 			};

@@ -7,7 +7,7 @@ public record BoundBinaryExpression(
 ) implements BoundExpression{
 	@Override
 	public Class<?> type(){
-		return left.type();
+		return operator.resultType();
 	}
 
 	@Override

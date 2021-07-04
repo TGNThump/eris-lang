@@ -79,7 +79,13 @@ public final class Lexer{
 			case '/' -> new SyntaxToken(SyntaxKind.SlashToken, position++, "/", null);
 			case '(' -> new SyntaxToken(SyntaxKind.OpenParenthesisToken, position++, "(", null);
 			case ')' -> new SyntaxToken(SyntaxKind.CloseParenthesisToken, position++, ")", null);
-			case '!' -> new SyntaxToken(SyntaxKind.BangToken, position++, "!", null);
+			case '!' -> {
+				if (peek(1) == '='){
+					yield new SyntaxToken(SyntaxKind.BangEqualsToken, position += 2, "!=", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.BangToken, position++, "!", null);
+				}
+			}
 			case '&' -> {
 				if (peek(1) == '&'){
 					yield new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, position += 2, "&&", null);
@@ -92,6 +98,13 @@ public final class Lexer{
 					yield new SyntaxToken(SyntaxKind.PipePipeToken, position += 2, "||", null);
 				} else {
 					yield new SyntaxToken(SyntaxKind.PipeToken, position++, "|", null);
+				}
+			}
+			case '=' -> {
+				if (peek(1) == '='){
+					yield new SyntaxToken(SyntaxKind.EqualsEqualsToken, position += 2, "==", null);
+				} else {
+					yield new SyntaxToken(SyntaxKind.EqualsToken, position++, "=", null);
 				}
 			}
 			default -> {
