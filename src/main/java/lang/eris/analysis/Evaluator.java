@@ -14,46 +14,61 @@ public final class Evaluator{
 		this.variables = variables;
 	}
 
-
 	public Object evaluate(){
 		return evaluateExpression(root);
 	}
 
 	private Object evaluateExpression(BoundExpression node){
-		if (node instanceof BoundLiteralExpression l){
-			return l.value();
-		} else if (node instanceof BoundVariableExpression v){
-			return variables.get(v.variableSymbol());
-		} else if (node instanceof BoundAssignmentExpression a){
-				var value = evaluateExpression(a.boundExpression());
-				variables.put(a.variableSymbol(), value);
-				return value;
-		} else if (node instanceof BoundUnaryExpression u){
-			var operand = evaluateExpression(u.operand());
-			return switch (u.operator().kind()){
-				case Identity -> operand;
-				case Negation -> -(Integer) operand;
-				case LogicalNegation -> !(Boolean) operand;
-			};
-		} else if (node instanceof BoundBinaryExpression b){
-			var left = evaluateExpression(b.left());
-			var right = evaluateExpression(b.right());
+		return switch (node.boundNodeKind()){
+			case LiteralExpression -> evaluateLiteralExpression((BoundLiteralExpression) node);
+			case BinaryExpression -> evaluateBinaryExpression((BoundBinaryExpression) node);
+			case UnaryExpression -> evaluateUnaryExpression((BoundUnaryExpression) node);
+			case VariableExpression -> evaluateVariableExpression((BoundVariableExpression) node);
+			case AssignmentExpression -> evaluateAssignmentExpression((BoundAssignmentExpression) node);
+		};
+	}
 
-			return switch (b.operator().kind()){
-				case Addition -> (Integer) left + (Integer) right;
-				case Subtraction -> (Integer) left - (Integer) right;
-				case Multiplication -> (Integer) left * (Integer) right;
-				case Division -> (Integer) left / (Integer) right;
-				case Equals -> left.equals(right);
-				case NotEquals -> !left.equals(right);
-				case LessThan -> (Integer) left < (Integer) right;
-				case LessThanEquals -> (Integer) left <= (Integer) right;
-				case GreaterThan -> (Integer) left > (Integer) right;
-				case GreaterThanEquals -> (Integer) left >= (Integer) right;
-				case LogicalAnd -> (Boolean) left && (Boolean) right;
-				case LogicalOr -> (Boolean) left || (Boolean) right;
-			};
-		} else throw new IllegalStateException("Unexpected node " + node.boundNodeKind());
+	private Object evaluateLiteralExpression(BoundLiteralExpression l) {
+		return l.value();
+	}
+
+	private Object evaluateVariableExpression(BoundVariableExpression v) {
+		return variables.get(v.variableSymbol());
+	}
+
+	private Object evaluateAssignmentExpression(BoundAssignmentExpression a) {
+		var value = evaluateExpression(a.boundExpression());
+		variables.put(a.variableSymbol(), value);
+		return value;
+	}
+
+	private Object evaluateUnaryExpression(BoundUnaryExpression u) {
+		var operand = evaluateExpression(u.operand());
+		return switch (u.operator().kind()){
+			case Identity -> operand;
+			case Negation -> -(Integer) operand;
+			case LogicalNegation -> !(Boolean) operand;
+		};
+	}
+
+	private Object evaluateBinaryExpression(BoundBinaryExpression b) {
+		var left = evaluateExpression(b.left());
+		var right = evaluateExpression(b.right());
+
+		return switch (b.operator().kind()){
+			case Addition -> (Integer) left + (Integer) right;
+			case Subtraction -> (Integer) left - (Integer) right;
+			case Multiplication -> (Integer) left * (Integer) right;
+			case Division -> (Integer) left / (Integer) right;
+			case Equals -> left.equals(right);
+			case NotEquals -> !left.equals(right);
+			case LessThan -> (Integer) left < (Integer) right;
+			case LessThanEquals -> (Integer) left <= (Integer) right;
+			case GreaterThan -> (Integer) left > (Integer) right;
+			case GreaterThanEquals -> (Integer) left >= (Integer) right;
+			case LogicalAnd -> (Boolean) left && (Boolean) right;
+			case LogicalOr -> (Boolean) left || (Boolean) right;
+		};
 	}
 
 	@Override
