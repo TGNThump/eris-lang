@@ -108,25 +108,33 @@ public final class Parser{
 
 	private ExpressionSyntax parsePrimaryExpression(){
 		return switch (current().kind()){
-			case OpenParenthesisToken -> {
-				var left = nextToken();
-				var expression = parseExpression();
-				var right = matchToken(SyntaxKind.CloseParenthesisToken);
-				yield new ParenthesizedExpressionSyntax(left, expression, right);
-			}
-			case FalseKeyword, TrueKeyword -> {
-				var keywordToken = nextToken();
-				var value = keywordToken.kind() == SyntaxKind.TrueKeyword;
-				yield new LiteralExpressionSyntax(keywordToken, value);
-			}
-			case IdentifierToken -> {
-				var identifierToken = nextToken();
-				yield new NameExpressionSyntax(identifierToken);
-			}
-			default -> {
-				var literalToken = matchToken(SyntaxKind.NumberToken);
-				yield new LiteralExpressionSyntax(literalToken);
-			}
+			case OpenParenthesisToken -> parseParenthesizedExpression();
+			case FalseKeyword, TrueKeyword -> parseBooleanLiteral();
+			case NumberToken -> parseNumberLiteral();
+			default -> parseNameExpression();
 		};
+	}
+
+	private LiteralExpressionSyntax parseNumberLiteral() {
+		var literalToken = matchToken(SyntaxKind.NumberToken);
+		return new LiteralExpressionSyntax(literalToken);
+	}
+
+	private ParenthesizedExpressionSyntax parseParenthesizedExpression() {
+		var left = matchToken(SyntaxKind.OpenParenthesisToken);
+		var expression = parseExpression();
+		var right = matchToken(SyntaxKind.CloseParenthesisToken);
+		return new ParenthesizedExpressionSyntax(left, expression, right);
+	}
+
+	private LiteralExpressionSyntax parseBooleanLiteral() {
+		var value = current().kind() == SyntaxKind.TrueKeyword;
+		var keywordToken = matchToken(value ? SyntaxKind.TrueKeyword : SyntaxKind.FalseKeyword);
+		return new LiteralExpressionSyntax(keywordToken, value);
+	}
+
+	private NameExpressionSyntax parseNameExpression() {
+		var identifierToken = matchToken(SyntaxKind.IdentifierToken);
+		return new NameExpressionSyntax(identifierToken);
 	}
 }
